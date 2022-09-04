@@ -5,9 +5,12 @@ import com.products.backend.Models.User;
 import com.products.backend.Repository.UserRepository;
 import com.products.backend.Services.JwtUserDetailsService;
 import com.products.backend.Utils.JwtTokenUtil;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -18,13 +21,14 @@ import java.util.HashMap;
 import java.util.Map;
 
 @RestController
-@CrossOrigin(origins = "http://localhost:3000/")
 @RequestMapping("/api/auth")
 public class AuthController {
     private final AuthenticationManager authenticationManager;
     private final UserRepository userRepository;
     private final JwtUserDetailsService userDetailsService;
     private final JwtTokenUtil jwtTokenUtil;
+    protected final Log logger = LogFactory.getLog(this.getClass());
+
 
     public AuthController(AuthenticationManager authenticationManager, UserRepository userRepository, JwtUserDetailsService userDetailsService, JwtTokenUtil jwtTokenUtil) {
         this.authenticationManager = authenticationManager;
@@ -38,7 +42,11 @@ public class AuthController {
         Map<String, Object> responseMap = new HashMap<>();
 
         try {
-            Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(loginRequest.getEmail(), loginRequest.getPassword()));
+            Authentication authentication = authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(
+                            loginRequest.getEmail(), loginRequest.getPassword()
+                    )
+            );
 
             if (authentication.isAuthenticated()) {
                 UserDetails userDetails = userDetailsService.loadUserByUsername(loginRequest.getEmail());
@@ -47,13 +55,15 @@ public class AuthController {
                 responseMap.put("token", token);
                 return ResponseEntity.ok(responseMap);
             }
+        } catch (BadCredentialsException ex) {
+            responseMap.put("message", "Invalid Credentials");
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(responseMap);
         } catch (Exception ex) {
-            responseMap.put("message", "Something went wrong :(");
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(responseMap);
+            logger.error("Exception", ex);
         }
 
-        responseMap.put("message", "Invalid Credentials");
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(responseMap);
+        responseMap.put("message", "Something went wrong :(");
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(responseMap);
     }
 
     @PostMapping("/register")
@@ -75,8 +85,4 @@ public class AuthController {
         responseMap.put("message", "Account created successfully");
         return ResponseEntity.ok(responseMap);
     }
-//    @GetMapping("/user")
-//    public Principal user(Principal user) {
-//        return user;
-//    }
 }

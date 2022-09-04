@@ -21,7 +21,6 @@ import java.io.IOException;
 import java.util.List;
 
 @RestController
-@CrossOrigin(origins = "http://localhost:3000/")
 @RequestMapping("/api/")
 public class ProductController {
     private static final Logger logger = LoggerFactory.getLogger(ProductController.class);
@@ -51,16 +50,11 @@ public class ProductController {
 
     @PostMapping("/products")
     ResponseEntity<?> post(ProductRequest productRequest) {
+        var category = categoryRepository.findById(productRequest.getCategory())
+                .orElseThrow(() -> new EntityNotFoundException(productRequest.getCategory()));
 
         if (!productRequest.getImage().isEmpty()) {
-            var category = categoryRepository.findById(productRequest.getCategory())
-                    .orElseThrow(() -> new EntityNotFoundException(productRequest.getCategory()));
-
-            var filename = fileStorageService.storeFile(productRequest.getImage());
-            String fileDownloadUri = ServletUriComponentsBuilder.fromCurrentContextPath()
-                    .path("api/products/image/")
-                    .path(filename)
-                    .toUriString();
+            String fileDownloadUri = getFileUrl(productRequest);
 
             var newProduct = new Product();
             newProduct.setName(productRequest.getName());
@@ -70,7 +64,24 @@ public class ProductController {
             return new ResponseEntity<>(productRepository.save(newProduct), HttpStatus.OK);
         }
 
-        return new ResponseEntity<>("", HttpStatus.BAD_REQUEST);
+        return new ResponseEntity<>("Something went wrong :(", HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    @PutMapping("/products/{id}")
+    ResponseEntity<?> put(ProductRequest productRequest, @PathVariable Long id) {
+        var category = categoryRepository.findById(productRequest.getCategory())
+                .orElseThrow(() -> new EntityNotFoundException(productRequest.getCategory()));
+
+        return productRepository.findById(id)
+                .map(product -> {
+                    product.setName(productRequest.getName());
+                    product.setCategory(category);
+                    if (productRequest.getImage() != null && !productRequest.getImage().isEmpty()) {
+                        String fileDownloadUri = getFileUrl(productRequest);
+                        product.setImage(fileDownloadUri);
+                    }
+                    return new ResponseEntity<>(productRepository.save(product), HttpStatus.OK);
+                }).orElseThrow(() -> new EntityNotFoundException(id));
     }
 
     @GetMapping("/products/image/{fileName:.+}")
@@ -97,5 +108,13 @@ public class ProductController {
     @DeleteMapping("/products/{id}")
     void delete(@PathVariable Long id) {
         productRepository.deleteById(id);
+    }
+
+    private String getFileUrl(ProductRequest productRequest) {
+        var filename = fileStorageService.storeFile(productRequest.getImage());
+        return ServletUriComponentsBuilder.fromCurrentContextPath()
+                .path("api/products/image/")
+                .path(filename)
+                .toUriString();
     }
 }
