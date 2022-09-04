@@ -3,7 +3,6 @@ package com.products.backend.Models;
 import lombok.Data;
 
 import javax.persistence.*;
-import java.util.Set;
 
 @Data
 @Entity
@@ -18,7 +17,8 @@ public class User {
 
     public User() {
     }
-    public User(String email, String password){
+
+    public User(String email, String password) {
 
         this.email = email;
         this.password = password;
