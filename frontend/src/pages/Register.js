@@ -18,13 +18,25 @@ const schemaResolver = yupResolver(
     })
 );
 
-function Login() {
-    const {login, isAuthenticated, loading, errors} = useAuth();
+function Register() {
+    const {
+        register,
+        isAuthenticated,
+        loading,
+        errors,
+        registrationSuccessful
+    } = useAuth();
     const navigate = useNavigate();
 
     const handleSubmit = async (formData) => {
-        await login(formData);
+        await register(formData);
     }
+
+    useEffect(() => {
+        if (registrationSuccessful) {
+            navigate('/login');
+        }
+    }, [registrationSuccessful, navigate]);
 
     useEffect(() => {
         if (isAuthenticated) {
@@ -35,8 +47,8 @@ function Login() {
     return (
         <>
             <Container className='container-auth'>
-                <h4 className="mt-0">{'Sign In'}</h4>
-                <p className="text-muted mb-4">{'Enter your email address and password to access  admin panel.'}</p>
+                <h4 className="mt-0">Register</h4>
+                <p className="text-muted mb-4">Register with your email address</p>
 
                 {errors && (
                     <Alert variant="danger" className="my-2">
@@ -66,7 +78,7 @@ function Login() {
 
                     <div className="d-grid text-center">
                         <Button type="submit" disabled={loading}>
-                            {'Log In'}
+                            Register
                         </Button>
                     </div>
                 </VerticalForm>
@@ -75,4 +87,4 @@ function Login() {
     );
 }
 
-export default Login;
+export default Register;

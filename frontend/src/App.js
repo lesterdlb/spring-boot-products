@@ -8,6 +8,7 @@ import MainLayout from './layouts/MainLayout';
 // Pages
 import Home from './pages/Home';
 import Login from './pages/Login';
+import Register from "./pages/Register";
 import NotFound from './pages/NotFound';
 import Categories from "./pages/Categories";
 import AddEditCategory from "./pages/AddEditCategory";
@@ -25,7 +26,7 @@ const App = () => {
                     <Route path="/" element={<MainLayout />}>
                         <Route path="" element={<Home />} />
                         <Route path="login" element={<Login />} />
-                        {/*<Route path="signup" element={<Signup />} />*/}
+                        <Route path="register" element={<Register />} />
                         <Route path="categories" element={<Outlet/>}>
                             <Route index element={<Categories />} />
                             <Route path="edit/:id" element={<AddEditCategory />}/>
@@ -33,6 +34,7 @@ const App = () => {
                         </Route>
                         <Route path="products" element={<Outlet/>}>
                             <Route index element={<Products />} />
+                            <Route path="edit/:id" element={<AddEditProduct />}/>
                             <Route path="add/" element={<AddEditProduct />}/>
                         </Route>
                         <Route path="not-found" element={<NotFound />} />
