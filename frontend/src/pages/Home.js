@@ -22,7 +22,7 @@ function Home() {
                         </p>
                         {auth.isAuthenticated && (
                             <>
-                                <h2>Username: {auth.user.username}</h2>
+                                <h2>Username: {auth.user.email}</h2>
                             </>
                         )}
                         {auth.isAuthenticated ? (

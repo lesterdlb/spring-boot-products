@@ -4,8 +4,8 @@ import useAuthProvider from "./useAuthProvider";
 
 const AuthContext = React.createContext(null);
 
-function AuthProvider({ children, ...rest }) {
-    const auth = useAuthProvider()
+function AuthProvider({children, ...rest}) {
+    const auth = useAuthProvider();
 
     return (
         <AuthContext.Provider value={auth} {...rest}>
@@ -14,5 +14,5 @@ function AuthProvider({ children, ...rest }) {
     );
 }
 
-export { AuthContext };
+export {AuthContext};
 export default AuthProvider;

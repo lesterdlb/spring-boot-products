@@ -40,7 +40,7 @@ function Login() {
 
                 {errors && (
                     <Alert variant="danger" className="my-2">
-                        {errors.error}
+                        {errors.message}
                     </Alert>
                 )}
 
