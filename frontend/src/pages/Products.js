@@ -1,11 +1,27 @@
 import React, {useState, useEffect, useCallback} from 'react';
-import {Link} from 'react-router-dom';
+import {Link, useNavigate} from 'react-router-dom';
 
 import Api, {PRODUCT_URL, PRODUCTS_URL} from "../helpers/Api";
 import {Container, Image} from "react-bootstrap";
+import useAuth from "../hooks/useAuth";
 
 function Products() {
+    const auth = useAuth();
+    const navigate = useNavigate();
     const [products, setProducts] = useState(null);
+
+    const deleteProduct = async (id) => {
+        setProducts(products.map(product => {
+            if (product.id === id) {
+                product.isDeleting = true;
+            }
+            return product;
+        }));
+        const response = await Api.delete(PRODUCT_URL(id));
+        if (response.status === 200) {
+            setProducts(products => products.filter(product => product.id !== id));
+        }
+    }
 
     const fetchData = useCallback(async () => {
         const response = await Api.get(PRODUCTS_URL);
@@ -16,18 +32,11 @@ function Products() {
         fetchData().catch(console.log);
     }, [fetchData]);
 
-    const deleteProduct = async (id) => {
-        setProducts(products.map(x => {
-            if (x.id === id) {
-                x.isDeleting = true;
-            }
-            return x;
-        }));
-        const response = await Api.delete(PRODUCT_URL(id));
-        if (response.status === 200) {
-            setProducts(products => products.filter(x => x.id !== id));
+    useEffect(() => {
+        if (!auth.isAuthenticated) {
+            navigate('/');
         }
-    }
+    }, [auth.isAuthenticated, navigate]);
 
     return (
         <Container>
@@ -51,6 +60,8 @@ function Products() {
                         </td>
                         <td>{product.category.name}</td>
                         <td style={{whiteSpace: 'nowrap'}}>
+                            <Link to={`./edit/${product.id}`} className="btn btn-sm btn-primary mr-1">Edit</Link>
+                            {' '}
                             <button onClick={() => deleteProduct(product.id)}
                                     className="btn btn-sm btn-danger btn-delete-user" disabled={product.isDeleting}>
                                 {product.isDeleting

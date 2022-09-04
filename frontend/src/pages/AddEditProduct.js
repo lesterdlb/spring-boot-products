@@ -6,10 +6,13 @@ import * as Yup from 'yup';
 import Api, {CATEGORIES_URL, PRODUCT_URL, PRODUCTS_URL} from "../helpers/Api";
 import {Button, Card, Col, Form, Image, Row} from "react-bootstrap";
 import FormInput from "../components/form/FormInput";
+import useAuth from "../hooks/useAuth";
 
 const AddEditProduct = () => {
+    const auth = useAuth();
     const [categories, setCategories] = useState(null);
     const [imageFile, setImageFile] = useState();
+    const [currentImage, setCurrentImage] = useState(null);
     const {id} = useParams();
     const navigate = useNavigate();
     const isAddMode = !id;
@@ -26,6 +29,7 @@ const AddEditProduct = () => {
         register,
         control,
         formState: {errors},
+        setValue
     } = useForm({
         resolver: validationSchema
     });
@@ -50,7 +54,15 @@ const AddEditProduct = () => {
     }
 
     const updateProduct = async (id, data) => {
-        const response = await Api.put(PRODUCT_URL(id), data);
+        const formData = new FormData();
+
+        formData.append('name', data.name);
+        if (imageFile) {
+            formData.append('image', imageFile);
+        }
+        formData.append('category', data.category);
+
+        const response = await Api.put(PRODUCT_URL(id), formData);
         if (response.status === 200) {
             navigate('/products');
         }
@@ -61,8 +73,14 @@ const AddEditProduct = () => {
     }
 
     const fetchData = useCallback(async () => {
+        const response = await Api.get(PRODUCT_URL(id));
+        setValue('name', response.data.name);
+        setValue('category', response.data.category.id);
 
-    }, [])
+        if (!isAddMode) {
+            setCurrentImage(response.data.image);
+        }
+    }, [categories])
 
     const fetchCategories = useCallback(async () => {
         const categoriesResponse = await Api.get(CATEGORIES_URL);
@@ -78,6 +96,12 @@ const AddEditProduct = () => {
     useEffect(() => {
         fetchCategories().catch(console.log);
     }, [fetchCategories]);
+
+    useEffect(() => {
+        if (!auth.isAuthenticated) {
+            navigate('/');
+        }
+    }, [auth.isAuthenticated, navigate]);
 
     return (
         <>
@@ -107,8 +131,8 @@ const AddEditProduct = () => {
                                             Image
                                         </Form.Label>
                                         <Col md={10}>
-                                            {(imageFile && !isAddMode) && (
-                                                <Image height='100' src={imageFile} alt=''/>
+                                            {(currentImage && !isAddMode) && (
+                                                <Image height='100' src={currentImage} alt=''/>
                                             )}
                                             <FormInput
                                                 type="file"
@@ -117,7 +141,7 @@ const AddEditProduct = () => {
                                                 errors={errors}
                                                 control={control}
                                                 onChange={handleFileChange}
-                                                required
+                                                required={isAddMode}
                                             />
                                         </Col>
                                     </Form.Group>

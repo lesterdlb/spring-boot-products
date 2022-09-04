@@ -1,22 +1,25 @@
 import React, {useState, useEffect, useCallback} from 'react';
-import {Link} from 'react-router-dom';
-
-import Api, {CATEGORIES_URL, CATEGORY_URL} from "../helpers/Api";
+import {Link, useNavigate} from 'react-router-dom';
 import {Container} from "react-bootstrap";
 
+import useAuth from "../hooks/useAuth";
+import Api, {CATEGORIES_URL, CATEGORY_URL} from "../helpers/Api";
+
 function Categories() {
+    const auth = useAuth();
+    const navigate = useNavigate();
     const [categories, setCategories] = useState(null);
 
     const deleteCategory = async (id) => {
-        setCategories(categories.map(x => {
-            if (x.id === id) {
-                x.isDeleting = true;
+        setCategories(categories.map(category => {
+            if (category.id === id) {
+                category.isDeleting = true;
             }
-            return x;
+            return category;
         }));
         const response = await Api.delete(CATEGORY_URL(id));
         if (response.status === 200) {
-            setCategories(categories => categories.filter(x => x.id !== id));
+            setCategories(categories => categories.filter(category => category.id !== id));
         }
     }
 
@@ -28,6 +31,12 @@ function Categories() {
     useEffect(() => {
         fetchData().catch(console.log);
     }, [fetchData]);
+
+    useEffect(() => {
+        if (!auth.isAuthenticated) {
+            navigate('/');
+        }
+    }, [auth.isAuthenticated, navigate]);
 
     return (
         <Container>

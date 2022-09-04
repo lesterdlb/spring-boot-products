@@ -6,23 +6,25 @@ import * as Yup from 'yup';
 import Api, {CATEGORIES_URL, CATEGORY_URL} from "../helpers/Api";
 import {Button, Card, Col, Form, Row} from "react-bootstrap";
 import FormInput from "../components/form/FormInput";
+import useAuth from "../hooks/useAuth";
+
+const validationSchema = yupResolver(
+    Yup.object().shape({
+        name: Yup.string()
+            .required('Name is required')
+    })
+);
 
 const AddEditCategory = () => {
+    const auth = useAuth();
     const {id} = useParams();
     const navigate = useNavigate();
     const isAddMode = !id;
-
-    const validationSchema = yupResolver(
-        Yup.object().shape({
-            name: Yup.string()
-                .required('Name is required')
-        })
-    );
-
-    const {register, handleSubmit, reset, control, errors} = useForm({
+    const {
+        register, handleSubmit, reset, control, formState: {errors}
+    } = useForm({
         resolver: validationSchema
     });
-
 
     function onSubmit(data) {
         return isAddMode
@@ -32,14 +34,14 @@ const AddEditCategory = () => {
 
     const createCategory = async (data) => {
         const response = await Api.post(CATEGORIES_URL, data);
-        if (response.status === 200){
+        if (response.status === 200) {
             navigate('/categories');
         }
     }
 
     const updateCategory = async (id, data) => {
         const response = await Api.put(CATEGORY_URL(id), data);
-        if (response.status === 200){
+        if (response.status === 200) {
             navigate('/categories');
         }
     }
@@ -54,6 +56,12 @@ const AddEditCategory = () => {
             fetchData().catch(console.log)
         }
     }, [fetchData, isAddMode]);
+
+    useEffect(() => {
+        if (!auth.isAuthenticated) {
+            navigate('/');
+        }
+    }, [auth.isAuthenticated, navigate]);
 
     return (
         <>
