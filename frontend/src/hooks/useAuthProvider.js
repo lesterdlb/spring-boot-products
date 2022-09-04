@@ -1,7 +1,7 @@
 import {useEffect, useState} from "react";
 import Api, {LOGIN_URL, REGISTER_URL} from "../helpers/Api";
 
-const LOCAL_STORAGE_KEY = 'user';
+export const LOCAL_STORAGE_KEY = 'user';
 
 const useAuthProvider = () => {
     const [user, setUser] = useState(null);
@@ -10,13 +10,13 @@ const useAuthProvider = () => {
     const [loading, setLoading] = useState(false);
     const [errors, setErrors] = useState(null);
 
-    const login = async (username, password) => {
+    const login = async ({email, password}) => {
         setErrors(null);
         setLoading(true);
         try {
             const response = await Api.post(LOGIN_URL, {
-                email: username,
-                password: password
+                email,
+                password
             });
             if (response.status === 200) {
                 localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(response.data));
