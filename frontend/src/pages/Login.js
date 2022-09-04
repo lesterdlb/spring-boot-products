@@ -35,8 +35,16 @@ function Login() {
     return (
         <>
             <Container className='container-auth'>
-                <h4 className="mt-0">{'Sign In'}</h4>
-                <p className="text-muted mb-4">{'Enter your email address and password to access  admin panel.'}</p>
+                <h4 className="mt-0">'Sign In'</h4>
+                <p className="text-muted mb-4">
+                    Default User:
+                </p>
+                <p>
+                    Email: frodo@mail.com
+                </p>
+                <p>
+                    Password: 123qwe
+                </p>
 
                 {errors && (
                     <Alert variant="danger" className="my-2">
@@ -45,6 +53,7 @@ function Login() {
                 )}
 
                 <VerticalForm
+                    formClass='mt-4'
                     onSubmit={handleSubmit}
                     resolver={schemaResolver}
                 >

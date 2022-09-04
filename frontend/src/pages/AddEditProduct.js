@@ -80,7 +80,7 @@ const AddEditProduct = () => {
         if (!isAddMode) {
             setCurrentImage(response.data.image);
         }
-    }, [categories])
+    }, [isAddMode, setValue, id])
 
     const fetchCategories = useCallback(async () => {
         const categoriesResponse = await Api.get(CATEGORIES_URL);
